@@ -1,0 +1,29 @@
+### 1. Stock inicial
+GET http://localhost:8080/inventory
+
+### 2. Pedido normal -> 201. En consola: pedido y reserva en el mismo hilo, correo en otro hilo.
+POST http://localhost:8080/orders
+Content-Type: application/json
+
+{"sku": "TAZA-002", "quantity": 2, "customerEmail": "ana@example.com"}
+
+### 3. Sin stock suficiente -> 409
+POST http://localhost:8080/orders
+Content-Type: application/json
+
+{"sku": "CAFE-001", "quantity": 999, "customerEmail": "ana@example.com"}
+
+### 4. El pedido del paso 3 no existe (rollback de la transacción local)
+GET http://localhost:8080/orders
+
+### 5. El correo falla -> 201 de todos modos: el pedido no depende de notificaciones
+POST http://localhost:8080/orders
+Content-Type: application/json
+
+{"sku": "TAZA-002", "quantity": 1, "customerEmail": "luis@falla.test"}
+
+### 6. El evento del paso 5 quedó registrado como pendiente en el outbox (tabla EVENT_PUBLICATION)
+GET http://localhost:8080/demo/outbox/pendientes
+
+### 7. Métricas crudas en formato Prometheus (pedidos_recibidos_total): levanta docker-compose primero
+GET http://localhost:8080/actuator/prometheus

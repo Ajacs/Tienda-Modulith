@@ -1,0 +1,11 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: tienda-modulith
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets:
+          # El app corre en el host (./mvnw spring-boot:run), no en un contenedor;
+          # host.docker.internal es el nombre que Docker resuelve al host desde dentro de un contenedor.
+          - host.docker.internal:8080

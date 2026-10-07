@@ -1,0 +1,54 @@
+{
+  "title": "Tienda Modulith - Pedidos",
+  "uid": "tienda-modulith-pedidos",
+  "schemaVersion": 39,
+  "editable": true,
+  "refresh": "5s",
+  "time": { "from": "now-15m", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Pedidos totales",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus-ds" },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus-ds" },
+          "expr": "sum(pedidos_recibidos_total)",
+          "legendFormat": "pedidos"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "none" }, "overrides": [] }
+    },
+    {
+      "id": 2,
+      "title": "Pedidos por minuto",
+      "type": "timeseries",
+      "gridPos": { "h": 10, "w": 18, "x": 6, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus-ds" },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus-ds" },
+          "expr": "sum(rate(pedidos_recibidos_total[1m])) * 60",
+          "legendFormat": "pedidos/min"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] }
+    },
+    {
+      "id": 3,
+      "title": "Pedidos por SKU",
+      "type": "piechart",
+      "gridPos": { "h": 10, "w": 6, "x": 0, "y": 6 },
+      "datasource": { "type": "prometheus", "uid": "prometheus-ds" },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus-ds" },
+          "expr": "sum by (sku) (pedidos_recibidos_total)",
+          "legendFormat": "{{sku}}"
+        }
+      ]
+    }
+  ]
+}
