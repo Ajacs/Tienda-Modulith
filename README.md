@@ -7,7 +7,7 @@ Demo de un **monolito modular** con Spring Boot y Spring Modulith: una tienda co
 - Spring Boot 4.1.1
 - Spring Modulith 2.1.1
 - Micrometer + Actuator (métricas) y, opcionalmente, Prometheus + Grafana vía `docker-compose.yml`
-- H2 en memoria (no hay que instalar nada)
+- PostgreSQL (docker-compose; localhost:5433, db/user/password: tienda)
 
 ## Cómo correrlo
 
@@ -107,6 +107,37 @@ message broker ni una saga.
 - `GET /demo/outbox/pendientes` — eventos cuya entrega a algún listener no se completó.
 - `spring.modulith.events.republish-outstanding-events-on-restart=true` (en `application.properties`)
   — al reiniciar la app, cada publicación pendiente se reintenta automáticamente.
+
+### Reintentos con tiempo y límite
+
+Spring Modulith (2.1.1) da las piezas para controlar los reintentos, pero **no reintenta solo**:
+
+- Cada publicación guarda cuántas veces se intentó (`getCompletionAttempts()`) y cuándo fue el último reintento.
+- `FailedEventPublications.resubmit(...)` acepta una edad mínima (`withMinAge`) y un filtro, que es donde se pone el límite de intentos.
+
+No existe una propiedad tipo "reintenta cada 30 s, máximo 5 veces"; ese job lo escribes tú (aquí ya está hecho):
+
+```java
+@Component
+class RetryFailedEvents {
+
+    private final FailedEventPublications failed;
+
+    RetryFailedEvents(FailedEventPublications failed) {
+        this.failed = failed;
+    }
+
+    @Scheduled(fixedDelay = 30_000)   // cada 30 segundos
+    void retry() {
+        failed.resubmit(ResubmissionOptions.defaults()
+                .withMinAge(Duration.ofSeconds(30))                    // espera mínima antes de reintentar
+                .withFilter(p -> p.getCompletionAttempts() < 5));      // deja de insistir al quinto intento
+    }
+}
+```
+
+Está implementado en `RetryFailedEvents` (con `@EnableScheduling` en `StoreApplication`). Con el correo
+`@falla.test` el reintento falla cada 30 segundos y deja errores en la consola; no se profundiza en esto en la charla.
 
 ## Métricas: Prometheus y Grafana
 

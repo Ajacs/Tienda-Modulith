@@ -1,4 +1,15 @@
 services:
+  postgres:
+    image: postgres:17
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_DB=tienda
+      - POSTGRES_USER=tienda
+      - POSTGRES_PASSWORD=tienda
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
   prometheus:
     image: prom/prometheus:v2.55.1
     ports:
@@ -23,3 +34,6 @@ services:
       - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
     depends_on:
       - prometheus
+
+volumes:
+  postgres-data:

@@ -5,7 +5,7 @@ GET http://localhost:8080/inventory
 POST http://localhost:8080/orders
 Content-Type: application/json
 
-{"sku": "TAZA-002", "quantity": 2, "customerEmail": "ana@example.com"}
+{"sku": "CAFE-001", "quantity": 1, "customerEmail": "ana@example.com"}
 
 ### 3. Sin stock suficiente -> 409
 POST http://localhost:8080/orders
